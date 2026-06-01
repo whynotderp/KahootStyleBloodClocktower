@@ -1,4 +1,4 @@
-import { ROLES, getDistribution } from './gameData';
+import { ROLES, getDistribution } from './gameData.js';
 
 export function shuffle(arr) {
   const a = [...arr];
