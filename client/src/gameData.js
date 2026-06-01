@@ -1,0 +1,262 @@
+export const ROLES = {
+  // TOWNSFOLK
+  washerwoman: {
+    id: 'washerwoman',
+    name: 'Washerwoman',
+    team: 'townsfolk',
+    description: 'You start knowing that 1 of 2 players is a specific Townsfolk character. The Storyteller points to two players and shows you a Townsfolk token — you do not know which of the two it relates to.',
+    nightOrder: { firstNight: 30, otherNights: null },
+    ability: 'info',
+  },
+  librarian: {
+    id: 'librarian',
+    name: 'Librarian',
+    team: 'townsfolk',
+    description: 'You start knowing that 1 of 2 players is a specific Outsider character. If no Outsiders are in play, you are shown a zero instead.',
+    nightOrder: { firstNight: 31, otherNights: null },
+    ability: 'info',
+  },
+  investigator: {
+    id: 'investigator',
+    name: 'Investigator',
+    team: 'townsfolk',
+    description: 'You start knowing that 1 of 2 players is a specific Minion character. You do not know which of the two it relates to.',
+    nightOrder: { firstNight: 32, otherNights: null },
+    ability: 'info',
+  },
+  chef: {
+    id: 'chef',
+    name: 'Chef',
+    team: 'townsfolk',
+    description: 'You start knowing how many pairs of neighbouring evil players there are. Three neighbours in a row counts as two pairs, four as three pairs, etc.',
+    nightOrder: { firstNight: 33, otherNights: null },
+    ability: 'info',
+  },
+  empath: {
+    id: 'empath',
+    name: 'Empath',
+    team: 'townsfolk',
+    description: 'Each night, you learn how many of your 2 closest living neighbours are evil (0, 1, or 2). Dead players are skipped — next living neighbour counts.',
+    nightOrder: { firstNight: 34, otherNights: 50 },
+    ability: 'info',
+  },
+  fortuneTeller: {
+    id: 'fortuneTeller',
+    name: 'Fortune Teller',
+    team: 'townsfolk',
+    description: 'Each night, choose 2 players (living or dead): learn if at least one is a Demon. One good player is secretly your Red Herring and also registers as Demon. You can choose yourself.',
+    nightOrder: { firstNight: 35, otherNights: 51 },
+    ability: 'choose2',
+  },
+  undertaker: {
+    id: 'undertaker',
+    name: 'Undertaker',
+    team: 'townsfolk',
+    description: 'Each night (not the first), learn which character was executed today. If no execution occurred, you learn nothing. If the Drunk was executed, you see the Drunk token.',
+    nightOrder: { firstNight: null, otherNights: 52 },
+    ability: 'info',
+  },
+  monk: {
+    id: 'monk',
+    name: 'Monk',
+    team: 'townsfolk',
+    description: 'Each night (not the first), choose a player (not yourself): they are safe from the Demon tonight. If the Demon attacks them, they do not die and the Demon gets no alternate target.',
+    nightOrder: { firstNight: null, otherNights: 20 },
+    ability: 'chooseOther',
+  },
+  ravenkeeper: {
+    id: 'ravenkeeper',
+    name: 'Ravenkeeper',
+    team: 'townsfolk',
+    description: 'If you die at night, you are woken immediately to choose any player (living or dead) and learn their character. You are only woken on the night you die.',
+    nightOrder: { firstNight: null, otherNights: 55 },
+    ability: 'chooseOnDeath',
+  },
+  virgin: {
+    id: 'virgin',
+    name: 'Virgin',
+    team: 'townsfolk',
+    description: 'The first time you are nominated, if the nominator is a Townsfolk character, they are instantly executed before any vote. The day then ends. This ability only applies to your first nomination ever.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  slayer: {
+    id: 'slayer',
+    name: 'Slayer',
+    team: 'townsfolk',
+    description: 'Once per game, during the day, publicly choose a player: if they are the Demon, they instantly die. If they are not the Demon, nothing happens. Can be used at any point during the day.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'oncePerGame_day',
+  },
+  soldier: {
+    id: 'soldier',
+    name: 'Soldier',
+    team: 'townsfolk',
+    description: 'You cannot be killed by the Demon at night. If the Demon targets you, nothing happens and they cannot choose another target. You can still be executed during the day.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  mayor: {
+    id: 'mayor',
+    name: 'Mayor',
+    team: 'townsfolk',
+    description: 'If only 3 players are alive and no execution occurs that day, the good team wins. If the Demon would kill you at night, another player may die instead (Storyteller chooses — if that player is Soldier or Monk-protected, nobody dies).',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+
+  // OUTSIDERS
+  butler: {
+    id: 'butler',
+    name: 'Butler',
+    team: 'outsider',
+    description: 'Each night, choose a master (not yourself). Tomorrow you may only vote for an execution if your master votes first. You can choose not to vote even if your master does.',
+    nightOrder: { firstNight: 40, otherNights: 60 },
+    ability: 'chooseOther',
+  },
+  drunk: {
+    id: 'drunk',
+    name: 'Drunk',
+    team: 'outsider',
+    description: 'You do not know you are the Drunk. You think you are a Townsfolk character. You have no ability, but the Storyteller may give you false information when your fake role would receive info.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  recluse: {
+    id: 'recluse',
+    name: 'Recluse',
+    team: 'outsider',
+    description: 'You may register as evil, and as a Minion or Demon, to other players\' abilities — even if dead. The Storyteller decides each time. You are actually good.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  saint: {
+    id: 'saint',
+    name: 'Saint',
+    team: 'outsider',
+    description: 'If you are executed during the day, the evil team instantly wins. Dying at night does not trigger this effect.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+
+  // MINIONS
+  poisoner: {
+    id: 'poisoner',
+    name: 'Poisoner',
+    team: 'minion',
+    description: 'Each night, choose a player: they are poisoned for the rest of that night and the following day. Poisoned players lose their ability; if they would gain information, the Storyteller may give false info instead.',
+    nightOrder: { firstNight: 10, otherNights: 10 },
+    ability: 'chooseAny',
+  },
+  spy: {
+    id: 'spy',
+    name: 'Spy',
+    team: 'minion',
+    description: 'Each night, you see the Grimoire (all character tokens and status tokens). You may register as good — as a Townsfolk or Outsider — to other abilities, even when dead. The Storyteller decides.',
+    nightOrder: { firstNight: 11, otherNights: 11 },
+    ability: 'grimoire',
+  },
+  scarletWoman: {
+    id: 'scarletWoman',
+    name: 'Scarlet Woman',
+    team: 'minion',
+    description: 'If there are 5 or more living players (not counting Travellers) when the Demon dies, you immediately become the Demon and gain all its powers. The game continues.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  baron: {
+    id: 'baron',
+    name: 'Baron',
+    team: 'minion',
+    description: 'During setup, 2 extra Outsider tokens replace 2 Townsfolk tokens. The Baron has no other ability.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+
+  // DEMONS
+  imp: {
+    id: 'imp',
+    name: 'Imp',
+    team: 'demon',
+    description: 'Each night (not the first), choose a player (living or dead): they die. If you choose yourself, one of your Minions becomes the new Imp. The new Imp does not act again that night.',
+    nightOrder: { firstNight: null, otherNights: 30 },
+    ability: 'chooseAny',
+  },
+  fangGu: {
+    id: 'fangGu',
+    name: 'Fang Gu',
+    team: 'demon',
+    description: 'Each night (not the first), choose a player: they die. If the chosen player is an Outsider, you die instead and they become an evil Fang Gu. This jump only happens once — the new Fang Gu just kills Outsiders normally after that. The new Fang Gu does not know who the Minions are. Setup: +1 Outsider token.',
+    nightOrder: { firstNight: null, otherNights: 30 },
+    ability: 'chooseAny',
+  },
+
+  // TRAVELLERS
+  beggar: {
+    id: 'beggar',
+    name: 'Beggar',
+    team: 'traveller',
+    description: 'You cannot vote for an execution unless a dead player gives you their vote token. When given a token, you learn that player\'s alignment. You can still nominate. Cannot be poisoned or made drunk.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'passive',
+  },
+  bureaucrat: {
+    id: 'bureaucrat',
+    name: 'Bureaucrat',
+    team: 'traveller',
+    description: 'Each night, choose a player (not yourself): their vote counts as 3 tomorrow. Players will hear their name called when votes are counted. Dies before chosen player votes = ability lost. Doesn\'t apply to exile votes.',
+    nightOrder: { firstNight: 45, otherNights: 65 },
+    ability: 'chooseOther',
+  },
+  gunslinger: {
+    id: 'gunslinger',
+    name: 'Gunslinger',
+    team: 'traveller',
+    description: 'Each day, after the first vote of the day is tallied, you may choose to kill a player who voted. This happens immediately. Only applies to execution votes, not exile votes.',
+    nightOrder: { firstNight: null, otherNights: null },
+    ability: 'oncePerDay',
+  },
+  thief: {
+    id: 'thief',
+    name: 'Thief',
+    team: 'traveller',
+    description: 'Each night, choose a player (not yourself): their votes count negatively tomorrow (subtract 1 per vote). Applies to all execution votes that day. Doesn\'t apply to exile votes.',
+    nightOrder: { firstNight: 46, otherNights: 66 },
+    ability: 'chooseOther',
+  },
+};
+
+export const TEAM_ORDER = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller'];
+export const TEAM_LABELS = {
+  townsfolk: 'Townsfolk',
+  outsider: 'Outsiders',
+  minion: 'Minions',
+  demon: 'Demons',
+  traveller: 'Travellers',
+};
+export const TEAM_COLORS = {
+  townsfolk: '#2563eb',
+  outsider: '#7c3aed',
+  minion: '#dc2626',
+  demon: '#991b1b',
+  traveller: '#b45309',
+};
+
+// Standard Trouble Brewing distribution: [townsfolk, outsider, minion, demon]
+export function getDistribution(playerCount) {
+  const table = {
+    4:  [2, 0, 1, 1],
+    5:  [3, 0, 1, 1],
+    6:  [3, 1, 1, 1],
+    7:  [5, 0, 1, 1],
+    8:  [5, 1, 1, 1],
+    9:  [5, 2, 1, 1],
+    10: [7, 0, 2, 1],
+    11: [7, 1, 2, 1],
+    12: [7, 2, 2, 1],
+    13: [9, 0, 3, 1],
+    14: [9, 1, 3, 1],
+    15: [9, 2, 3, 1],
+  };
+  return table[playerCount] || table[15];
+}
