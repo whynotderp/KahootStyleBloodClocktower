@@ -455,18 +455,18 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
     }
   }
 
-  // Auto-start localtunnel if LT=1 env var is set (used by npm run tunnel)
+  // Auto-start Cloudflare tunnel if LT=1 env var is set (used by npm run tunnel)
   if (process.env.LT === '1') {
     try {
-      const { default: localtunnel } = await import('localtunnel');
-      const tunnel = await localtunnel({ port: PORT });
-      tunnelUrl = tunnel.url;
+      const { tunnel } = await import('cloudflared');
+      const { url, connections, child } = tunnel({ '--url': `http://localhost:${PORT}` });
+      tunnelUrl = await url;
       console.log(`\n  🌐 Tunnel URL: ${tunnelUrl}`);
       console.log(`  Share this with players joining over the internet.\n`);
-      tunnel.on('close', () => { tunnelUrl = null; });
+      child.on('exit', () => { tunnelUrl = null; });
     } catch (e) {
-      console.warn(`  ⚠ Could not start localtunnel: ${e.message}`);
-      console.warn(`  Run: npm install localtunnel\n`);
+      console.warn(`  ⚠ Could not start tunnel: ${e.message}`);
+      console.warn(`  Run: npm install\n`);
     }
   } else {
     console.log(`\n  For internet play: run  npm run tunnel\n`);
