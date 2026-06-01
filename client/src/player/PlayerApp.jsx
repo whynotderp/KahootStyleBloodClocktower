@@ -7,7 +7,8 @@ export default function PlayerApp() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState('join'); // join | waiting | role | night_r1 | night_r2 | day | game_over
   const [code, setCode] = useState('');
-  const [playerNames, setPlayerNames] = useState([]);
+  const [name, setName] = useState('');
+  const [codeValid, setCodeValid] = useState(false);
   const [joinError, setJoinError] = useState('');
   const [myIndex, setMyIndex] = useState(null);
   const [myName, setMyName] = useState('');
@@ -36,10 +37,9 @@ export default function PlayerApp() {
       setMyName(name);
       setPhase('waiting');
       navigate('/play');
-      // Persist code so it survives a re-render
       localStorage.setItem('botc_code', code || '');
     });
-    socket.on('join_error', (msg) => setJoinError(msg));
+    socket.on('join_error', (msg) => { setJoinError(msg); });
 
     socket.on('your_role', (data) => {
       setMyRole(data);
@@ -84,9 +84,9 @@ export default function PlayerApp() {
     return () => socket.removeAllListeners();
   }, [navigate]);
 
-  // ── Join ────────────────────────────────────────────────────────────────
+  // ── Join: Step 1 — enter code ────────────────────────────────────────────
 
-  if (phase === 'join' && !playerNames.length) {
+  if (phase === 'join' && !codeValid) {
     return (
       <div className="screen">
         <div className="card">
@@ -97,53 +97,65 @@ export default function PlayerApp() {
             <input
               className="input code-input"
               value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setJoinError(''); }}
               placeholder="ABCD"
               maxLength={4}
+              onKeyDown={e => e.key === 'Enter' && code.length === 4 && checkCode()}
             />
           </div>
           {joinError && <p className="hint" style={{ color: '#e87070' }}>{joinError}</p>}
-          <button
-            className="btn-primary btn-wide"
-            disabled={code.length !== 4}
-            onClick={() => {
-              socket.emit('get_room_names', { code }, (names) => {
-                if (!names) { setJoinError('Room not found'); return; }
-                setPlayerNames(names);
-              });
-            }}
-          >
+          <button className="btn-primary btn-wide" disabled={code.length !== 4}
+            onClick={checkCode}>
             Find Room →
           </button>
         </div>
       </div>
     );
+
+    function checkCode() {
+      socket.emit('check_room', { code }, ({ exists, phase: rPhase }) => {
+        if (!exists) { setJoinError('Room not found. Check the code and try again.'); return; }
+        if (rPhase !== 'lobby') { setJoinError('That game has already started.'); return; }
+        setJoinError('');
+        setCodeValid(true);
+      });
+    }
   }
 
-  if (phase === 'join') {
+  // ── Join: Step 2 — enter name ─────────────────────────────────────────────
+
+  if (phase === 'join' && codeValid) {
     return (
       <div className="screen">
         <div className="card">
-          <h2 className="title">Select Your Seat</h2>
-          <p className="hint">Tap your name to join.</p>
-          <div className="names-join-list">
-            {playerNames.map((name, i) => (
-              <button
-                key={i}
-                className="btn-name-seat"
-                onClick={() => {
-                  setJoinError('');
-                  socket.emit('join_room', { code, playerIndex: i });
-                }}
-              >
-                {name}
-              </button>
-            ))}
+          <h2 className="title">Enter Your Name</h2>
+          <p className="hint">Room code: <strong>{code}</strong></p>
+          <div className="field" style={{ marginTop: '1rem' }}>
+            <label className="label">Your Name</label>
+            <input
+              className="input"
+              value={name}
+              onChange={e => { setName(e.target.value); setJoinError(''); }}
+              placeholder="Enter your name"
+              maxLength={20}
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && name.trim() && joinGame()}
+            />
           </div>
           {joinError && <p className="hint" style={{ color: '#e87070' }}>{joinError}</p>}
+          <button className="btn-primary btn-wide" disabled={!name.trim()} onClick={joinGame}>
+            Join →
+          </button>
+          <button className="btn-ghost btn-wide" onClick={() => { setCodeValid(false); setJoinError(''); }}>
+            ← Change Code
+          </button>
         </div>
       </div>
     );
+
+    function joinGame() {
+      socket.emit('join_room', { code, name: name.trim() });
+    }
   }
 
   // ── Waiting ─────────────────────────────────────────────────────────────

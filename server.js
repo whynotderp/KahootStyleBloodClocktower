@@ -68,8 +68,9 @@ function hasR1Action(room, player) {
 }
 
 function playerSocket(room, player) {
-  const idx = room.players.findIndex(p => p.id === player.id);
-  return room.playerSockets[idx] || null;
+  // player.id is 1-based index from assignRoles; joinedPlayers is 0-based
+  const idx = player.id - 1;
+  return room.joinedPlayers[idx]?.socketId || null;
 }
 
 function emitToPlayer(room, player, event, data) {
@@ -169,13 +170,14 @@ function checkAllR2Done(room, code) {
 
 io.on('connection', (socket) => {
 
-  socket.on('create_room', ({ playerNames, rolePool }) => {
+  // Host creates room — no names or roles needed yet
+  socket.on('create_room', () => {
     const code = genCode();
     rooms.set(code, {
       code, phase: 'lobby',
       hostSocketId: socket.id,
-      playerNames, rolePool,
-      players: [], playerSockets: {},
+      joinedPlayers: [], // { name, socketId } in join order
+      players: [],
       nightNum: 0, nightRound: 1,
       nightActions: {}, nightInfo: {},
       pendingDeaths: [], nightEvents: [],
@@ -188,41 +190,44 @@ io.on('connection', (socket) => {
     socket.emit('room_created', { code });
   });
 
-  socket.on('get_room_names', ({ code }, callback) => {
+  // Check if a room code exists
+  socket.on('check_room', ({ code }, callback) => {
     const room = rooms.get(code?.toUpperCase());
-    callback(room ? room.playerNames : null);
+    callback({ exists: !!room, phase: room?.phase });
   });
 
-  socket.on('join_room', ({ code, playerIndex }) => {
+  // Player joins with their own name
+  socket.on('join_room', ({ code, name }) => {
     const room = rooms.get(code?.toUpperCase());
     if (!room) { socket.emit('join_error', 'Room not found'); return; }
-    if (playerIndex < 0 || playerIndex >= room.playerNames.length) { socket.emit('join_error', 'Invalid seat'); return; }
-    if (room.playerSockets[playerIndex]) { socket.emit('join_error', 'That seat is already taken'); return; }
+    if (room.phase !== 'lobby') { socket.emit('join_error', 'Game already started'); return; }
+    if (!name?.trim()) { socket.emit('join_error', 'Please enter your name'); return; }
+    const trimmed = name.trim();
+    if (room.joinedPlayers.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) {
+      socket.emit('join_error', 'That name is already taken'); return;
+    }
 
-    room.playerSockets[playerIndex] = socket.id;
+    const playerIndex = room.joinedPlayers.length;
+    room.joinedPlayers.push({ name: trimmed, socketId: socket.id });
     socket.join(code);
     socket.data = { code, playerIndex };
-    socket.emit('joined_ok', { playerIndex, name: room.playerNames[playerIndex] });
+    socket.emit('joined_ok', { playerIndex, name: trimmed });
 
-    const joined = Object.keys(room.playerSockets).length;
     io.to(room.hostSocketId).emit('player_joined', {
-      playerIndex, name: room.playerNames[playerIndex],
-      joined, total: room.playerNames.length,
+      playerIndex, name: trimmed,
+      joined: room.joinedPlayers.length,
     });
-
-    // If game already started, resend role info
-    if (room.players.length > 0) {
-      const player = room.players[playerIndex];
-      if (player) socket.emit('your_role', privateRoleInfo(room, player));
-    }
   });
 
-  socket.on('start_game', ({ code }) => {
+  socket.on('start_game', ({ code, rolePool }) => {
     const room = rooms.get(code);
     if (!room || room.hostSocketId !== socket.id) return;
 
-    let players = assignRoles(room.playerNames, room.rolePool);
-    players = setupDrunk(players, room.rolePool);
+    const playerNames = room.joinedPlayers.map(p => p.name);
+    room.rolePool = rolePool;
+
+    let players = assignRoles(playerNames, rolePool);
+    players = setupDrunk(players, rolePool);
     room.players = players;
 
     const good = players.filter(p => ['townsfolk','outsider'].includes(ROLES[p.roleId]?.team));
@@ -244,10 +249,10 @@ io.on('connection', (socket) => {
       seatingOrder: players.map(p => p.name),
     });
 
-    // Send private role to each player
-    for (let i = 0; i < players.length; i++) {
-      const sid = room.playerSockets[i];
-      if (sid) io.to(sid).emit('your_role', privateRoleInfo(room, players[i]));
+    // Send private role to each player (player.id is 1-based, joinedPlayers is 0-based)
+    for (const player of players) {
+      const sid = room.joinedPlayers[player.id - 1]?.socketId;
+      if (sid) io.to(sid).emit('your_role', privateRoleInfo(room, player));
     }
   });
 
