@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"npm run dev --prefix client\"",
+    "tunnel": "concurrently \"node server.js\" \"npm run dev --prefix client\" \"npx localtunnel --port 3000\"",
     "build": "npm run build --prefix client",
     "start": "node server.js"
   },

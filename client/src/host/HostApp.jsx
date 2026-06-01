@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import socket from '../socket.js';
 import { ROLES, TEAM_ORDER, TEAM_LABELS, TEAM_COLORS, getDistribution } from '../gameData.js';
 import SeatingCircle from '../components/SeatingCircle.jsx';
 
 export default function HostApp() {
+  const navigate = useNavigate();
   const [phase, setPhase] = useState('home'); // home | lobby | seating | night | day | summary | game_over
   const [roomCode, setRoomCode] = useState(null);
   const [joinedPlayers, setJoinedPlayers] = useState([]); // [{ name }]
@@ -81,6 +83,10 @@ export default function HostApp() {
           onClick={() => socket.emit('create_room')}>
           Create Game
         </button>
+        <button className="btn-ghost btn-wide" style={{ marginTop: '0.75rem' }}
+          onClick={() => navigate('/')}>
+          ← Back
+        </button>
       </div>
     </div>
   );
@@ -119,7 +125,7 @@ export default function HostApp() {
 
   if (phase === 'game_over') return (
     <GameOverScreen winResult={winResult} players={endPlayers} redHerringId={redHerringId}
-      onReset={() => { setPhase('home'); setRoomCode(null); setJoinedPlayers([]); setPlayers([]); setWinResult(null); }} />
+      onReset={() => { setPhase('home'); setRoomCode(null); setJoinedPlayers([]); setPlayers([]); setWinResult(null); navigate('/'); }} />
   );
 
   return null;

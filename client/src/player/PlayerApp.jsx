@@ -108,6 +108,10 @@ export default function PlayerApp() {
             onClick={checkCode}>
             Find Room →
           </button>
+          <button className="btn-ghost btn-wide" style={{ marginTop: '0.5rem' }}
+            onClick={() => navigate('/')}>
+            ← Back
+          </button>
         </div>
       </div>
     );

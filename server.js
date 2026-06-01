@@ -434,13 +434,14 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`\nBloodless on the Clocktower — Online server running\n`);
-  console.log(`  Host screen : http://localhost:${PORT}`);
+  console.log(`\nBlood on the Clocktower — Online server running\n`);
+  console.log(`  Local        : http://localhost:${PORT}`);
   const nets = networkInterfaces();
   for (const iface of Object.values(nets).flat()) {
     if (iface.family === 'IPv4' && !iface.internal) {
-      console.log(`  Player join : http://${iface.address}:${PORT}/join`);
+      console.log(`  Local network: http://${iface.address}:${PORT}`);
     }
   }
-  console.log('');
+  console.log(`\n  For internet play (Zoom etc): run  npm run tunnel`);
+  console.log(`  Then share the localtunnel URL with players.\n`);
 });
