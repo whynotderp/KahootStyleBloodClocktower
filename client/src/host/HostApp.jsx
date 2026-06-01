@@ -135,7 +135,22 @@ export default function HostApp() {
 
 function LobbyScreen({ code, joinedPlayers, rolePool, setRolePool, onStart }) {
   const [allowDuplicates, setAllowDuplicates] = useState(false);
+  const [tunnelUrl, setTunnelUrl] = useState(null);
   const n = joinedPlayers.filter(Boolean).length;
+
+  useEffect(() => {
+    fetch('/api/tunnel-url')
+      .then(r => r.json())
+      .then(d => { if (d.url) setTunnelUrl(d.url); })
+      .catch(() => {});
+    const interval = setInterval(() => {
+      fetch('/api/tunnel-url')
+        .then(r => r.json())
+        .then(d => setTunnelUrl(d.url || null))
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
   const minimum = n + 2;
   const counts = {};
   for (const r of rolePool) counts[r] = (counts[r] || 0) + 1;
@@ -165,10 +180,16 @@ function LobbyScreen({ code, joinedPlayers, rolePool, setRolePool, onStart }) {
           </div>
           <div style={{ flex: 1, minWidth: '200px' }}>
             <p className="hint" style={{ marginBottom: '0.25rem' }}>Players open on their phones:</p>
-            <div className="join-url">{origin}/join</div>
+            <div className="join-url">{tunnelUrl ? `${tunnelUrl}/join` : `${origin}/join`}</div>
             <p className="hint-small" style={{ marginTop: '0.25rem' }}>Then enter code: <strong>{code}</strong></p>
           </div>
         </div>
+        {tunnelUrl && (
+          <div style={{ background: '#14532d', border: '1px solid #16a34a', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', textAlign: 'center' }}>
+            <p style={{ margin: 0, color: '#4ade80', fontWeight: 600, fontSize: '0.85rem' }}>🌐 Internet play active — share this link:</p>
+            <p style={{ margin: '0.25rem 0 0', color: '#86efac', fontSize: '0.95rem', wordBreak: 'break-all' }}>{tunnelUrl}</p>
+          </div>
+        )}
 
         {/* Players joined */}
         <h3 className="section-title">Players Joined ({n})</h3>

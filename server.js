@@ -430,10 +430,22 @@ io.on('connection', (socket) => {
   });
 });
 
+// ─── Tunnel URL (set by localtunnel process via TUNNEL_URL env var) ────────
+
+let tunnelUrl = process.env.TUNNEL_URL || null;
+app.get('/api/tunnel-url', (_, res) => res.json({ url: tunnelUrl }));
+
+// Allow the tunnel helper to register its URL at runtime
+app.post('/api/tunnel-url', express.json(), (req, res) => {
+  tunnelUrl = req.body?.url || null;
+  if (tunnelUrl) console.log(`\n  🌐 Tunnel URL: ${tunnelUrl}\n`);
+  res.json({ ok: true });
+});
+
 // ─── Start ─────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', async () => {
   console.log(`\nBlood on the Clocktower — Online server running\n`);
   console.log(`  Local        : http://localhost:${PORT}`);
   const nets = networkInterfaces();
@@ -442,6 +454,21 @@ httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`  Local network: http://${iface.address}:${PORT}`);
     }
   }
-  console.log(`\n  For internet play (Zoom etc): run  npm run tunnel`);
-  console.log(`  Then share the localtunnel URL with players.\n`);
+
+  // Auto-start localtunnel if LT=1 env var is set (used by npm run tunnel)
+  if (process.env.LT === '1') {
+    try {
+      const { default: localtunnel } = await import('localtunnel');
+      const tunnel = await localtunnel({ port: PORT });
+      tunnelUrl = tunnel.url;
+      console.log(`\n  🌐 Tunnel URL: ${tunnelUrl}`);
+      console.log(`  Share this with players joining over the internet.\n`);
+      tunnel.on('close', () => { tunnelUrl = null; });
+    } catch (e) {
+      console.warn(`  ⚠ Could not start localtunnel: ${e.message}`);
+      console.warn(`  Run: npm install localtunnel\n`);
+    }
+  } else {
+    console.log(`\n  For internet play: run  npm run tunnel\n`);
+  }
 });
